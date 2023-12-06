@@ -1,8 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.searchProdutcsByName = exports.getAllProducts = exports.createProduct = exports.getAllUsers = exports.createUser = exports.products = exports.users = void 0;
-// export const users: TUser[] = [];
-// export const products: TProduct[] = [];
 exports.users = [
     {
         id: "u001",
