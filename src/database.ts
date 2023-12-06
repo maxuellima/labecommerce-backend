@@ -35,52 +35,52 @@ export const products: TProduct[] = [
 ];
 
 
-export const createUser = (
-  id: string | number,
-  name: string,
-  email: string,
-  password: string | number
-): string => {
-  const newUser: TUser = {
-    id: id,
-    name: name,
-    email: email,
-    password: password,
-    createdAt: new Date().toISOString(),
-  };
-  users.push(newUser);
-  return "Cadastro realizado com sucesso"
-};
+// export const createUser = (
+//   id: string | number,
+//   name: string,
+//   email: string,
+//   password: string | number
+// ): string => {
+//   const newUser: TUser = {
+//     id: id,
+//     name: name,
+//     email: email,
+//     password: password,
+//     createdAt: new Date().toISOString(),
+//   };
+//   users.push(newUser);
+//   return "Cadastro realizado com sucesso"
+// };
 
-export const getAllUsers = (): TUser[] => {
-  return users;
-};
+// export const getAllUsers = (): TUser[] => {
+//   return users;
+// };
 
-export const createProduct = (
-  id: string | number,
-  name: string,
-  price: number,
-  description: string,
-  imageUrl: string
-): string => {
-  const product: TProduct = {
-    id: id,
-    name: name,
-    price: price,
-    description: description,
-    imageUrl: imageUrl,
-  };
-  products.push(product);
-  return "Produto criado com sucesso";
-};
+// export const createProduct = (
+//   id: string | number,
+//   name: string,
+//   price: number,
+//   description: string,
+//   imageUrl: string
+// ): string => {
+//   const product: TProduct = {
+//     id: id,
+//     name: name,
+//     price: price,
+//     description: description,
+//     imageUrl: imageUrl,
+//   };
+//   products.push(product);
+//   return "Produto criado com sucesso";
+// };
 
-export const getAllProducts = (): TProduct[] => {
-  return products ;
-};
+// export const getAllProducts = (): TProduct[] => {
+//   return products ;
+// };
 
-export const searchProdutcsByName = (name: string): TProduct[] => {
-  return products.filter((product) =>{
-    return product.name.toLowerCase().includes(name.toLowerCase())
-    })
-  };
+// export const searchProdutcsByName = (name: string): TProduct[] => {
+//   return products.filter((product) =>{
+//     return product.name.toLowerCase().includes(name.toLowerCase())
+//     })
+//   };
 
