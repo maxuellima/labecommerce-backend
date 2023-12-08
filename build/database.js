@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchProdutcsByName = exports.getAllProducts = exports.createProduct = exports.getAllUsers = exports.createUser = exports.products = exports.users = void 0;
+exports.products = exports.users = void 0;
 exports.users = [
     {
         id: "u001",
@@ -33,41 +33,3 @@ exports.products = [
         imageUrl: "https://picsum.photos/seed/Monitor/400",
     },
 ];
-const createUser = (id, name, email, password) => {
-    const newUser = {
-        id: id,
-        name: name,
-        email: email,
-        password: password,
-        createdAt: new Date().toISOString(),
-    };
-    exports.users.push(newUser);
-    return "Cadastro realizado com sucesso";
-};
-exports.createUser = createUser;
-const getAllUsers = () => {
-    return exports.users;
-};
-exports.getAllUsers = getAllUsers;
-const createProduct = (id, name, price, description, imageUrl) => {
-    const product = {
-        id: id,
-        name: name,
-        price: price,
-        description: description,
-        imageUrl: imageUrl,
-    };
-    exports.products.push(product);
-    return "Produto criado com sucesso";
-};
-exports.createProduct = createProduct;
-const getAllProducts = () => {
-    return exports.products;
-};
-exports.getAllProducts = getAllProducts;
-const searchProdutcsByName = (name) => {
-    return exports.products.filter((product) => {
-        return product.name.toLowerCase().includes(name.toLowerCase());
-    });
-};
-exports.searchProdutcsByName = searchProdutcsByName;
