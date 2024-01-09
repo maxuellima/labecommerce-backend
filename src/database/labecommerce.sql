@@ -16,7 +16,7 @@ PRAGMA table_info('users');
 SELECT * FROM users;
 
 INSERT INTO
-    users (
+    users(
         id,
         name,
         email,
@@ -24,19 +24,19 @@ INSERT INTO
         created_at
     )
 VALUES (
-        'u004',
+        'u001',
         'Frodo',
         'frodobaggins@gmail.com',
         'condado123',
         CURRENT_TIMESTAMP
     ), (
-        'u005',
+        'u002',
         'Samwise Gamgee',
         'samgamgee@hobbitmail.com',
         'green1',
         CURRENT_TIMESTAMP
     ), (
-        'u007',
+        'u003',
         'Galadriel',
         'arainha@gmail.com',
         'valfenda123',
@@ -78,7 +78,7 @@ VALUES (
         'Este é o melhor arma para combate corpo a corpo',
         'https://pm1.aminoapps.com/6734/4c8b1f21f578d9dbaa3ec0becf7e7882bda442e9v2_00.jpg'
     ), (
-        'p004',
+        'prod004',
         'fogo de artifício de dragão',
         12.56,
         'Esse fogo de artifício demora cerca de 5 minutos no ar em forma de dragão',
@@ -97,3 +97,36 @@ SET
     image_url = 'http://Kabum.com/máquina-fotográfica'
 WHERE
 id = 'prod001';
+
+--Criando tabela de pedidos
+CREATE TABLE purchases(
+id TEXT PRIMARY KEY UNIQUE NOT NULL,
+buyer TEXT NOT NULL,
+total_price REAL NOT NULL,
+created_at TEXT NOT NULL,
+FOREIGN KEY(buyer) REFERENCES users(id)
+);
+--DATE NOT NULL DEFAULT TIMESTAMP - outra forma de declarar a data
+
+INSERT INTO purchases(id, buyer, total_price, created_at)
+VALUES
+('pur004','u001', 190.50,CURRENT_TIMESTAMP),
+('pur003','u002', 130.56, CURRENT_TIMESTAMP);
+
+SELECT * FROM purchases;
+
+UPDATE purchases
+SET 
+total_price=1000
+WHERE id = 'pur002';
+
+SELECT
+purchases.id,
+users.name AS buyer_name,
+users.id,
+users.email,
+purchases.total_price,
+purchases.created_at
+FROM purchases
+INNER JOIN users
+ON purchases.buyer = users.id;
