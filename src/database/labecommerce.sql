@@ -58,6 +58,11 @@ CREATE TABLE
 
 PRAGMA table_info('products');
 
+UPDATE users
+SET 
+id = 'u010'
+WHERE id = 'u001';
+
 SELECT * FROM products;
 --apresentar a tabela com dados específicos
 SELECT * FROM products WHERE name LIKE ('%arco%');
@@ -78,7 +83,7 @@ VALUES (
         'Este é o melhor arma para combate corpo a corpo',
         'https://pm1.aminoapps.com/6734/4c8b1f21f578d9dbaa3ec0becf7e7882bda442e9v2_00.jpg'
     ), (
-        'prod004',
+        'prod005',
         'fogo de artifício de dragão',
         12.56,
         'Esse fogo de artifício demora cerca de 5 minutos no ar em forma de dragão',
@@ -105,8 +110,12 @@ buyer TEXT NOT NULL,
 total_price REAL NOT NULL,
 created_at TEXT NOT NULL,
 FOREIGN KEY(buyer) REFERENCES users(id)
+ON UPDATE CASCADE
+ON DELETE CASCADE
 );
 --DATE NOT NULL DEFAULT TIMESTAMP - outra forma de declarar a data
+
+DROP TABLE purchases;
 
 INSERT INTO purchases(id, buyer, total_price, created_at)
 VALUES
@@ -130,3 +139,33 @@ purchases.created_at
 FROM purchases
 INNER JOIN users
 ON purchases.buyer = users.id;
+
+CREATE TABLE purchases_products(
+    purchase_id TEXT NOT NULL,
+    product_id TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+    FOREIGN KEY(purchase_id) REFERENCES purchases(id),
+    Foreign KEY (product_id) REFERENCES products (id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+);
+
+DROP TABLE purchases_products;
+
+INSERT INTO purchases_products(purchase_id, product_id, quantity)
+VALUES
+('pur001', 'prod003', 5),
+('pur002', 'prod004', 8),
+('pur003', 'prod002', 3);
+
+
+SELECT * FROM purchases_products
+INNER JOIN purchases
+ON
+purchases_products.purchase_id = purchases.id
+INNER JOIN products
+ON
+purchases_products.product_id = products.id
+INNER JOIN users
+ON users.id = purchases.buyer;
+
