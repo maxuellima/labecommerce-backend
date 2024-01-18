@@ -1,7 +1,7 @@
-import { products, users } from "./database";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { TProduct, TUser } from "./types";
+import { db } from "./database/knex";
 
 //Criação do servidor express
 const app = express();
@@ -23,21 +23,11 @@ app.get("/ping", (req: Request, res: Response) => {
 });
 
 //getAllUsers
-app.get("/users", (req: Request, res: Response) => {
+app.get("/users", async (req: Request, res: Response) => {
   try {
-    const userToFind = req.query.name as string;
-
-    if (userToFind !== undefined) {
-      if (userToFind.length < 1) {
-        res.status(400);
-        throw new Error("A busca deve ter ao menos um caractere.");
-      }
-      const result: TUser[] = users.filter((user) => {
-        return user.name.toLowerCase().includes(userToFind.toLowerCase());
-      });
-      res.send(result);
-    }
-    res.send(users);
+  const usuarios: Array<TUser> = await db.raw(`SELECT * FROM users`);    
+    res.status(200).send(usuarios);
+    
   } catch (error) {
     console.log(error);
     if (res.statusCode === 200) {
@@ -51,8 +41,206 @@ app.get("/users", (req: Request, res: Response) => {
   }
 });
 
-//getAllProducts 1. deve possuir pelo menos um caractere
-app.get("/products", (req: Request, res: Response) => {
+//createUser - 1. Validar body, 2. Id existe, 3. Email existe
+app.post("/users", async (req: Request, res: Response) => {
+  try {
+    // const id = req.body.id as string;
+    // const name = req.body.name as string;
+    // const email = req.body.email as string;
+    // const password = req.body.password as string;
+
+    const {id, name, email, password} = req.body;
+    //Desestruturando
+
+    //validar o body
+    if(id === undefined || name === undefined || email === undefined || password === undefined){
+      res.status(400);
+      throw new Error ("O body precisa ter todos esses atributos: 'id', 'name', 'email' e 'password'")
+    }
+
+    if (id !== undefined){
+      if(typeof id !== "string"){
+        res.statusCode = 400;
+        throw new Error('O atributo "id" deve ser uma string');
+      }
+      if(id[0] !== "u"){
+        res.statusCode = 400;
+        throw new Error("O 'id' do usuário deve começar com a letra 'u'");
+      }
+      if(typeof name !== "string"){
+        res.statusCode = 400;
+        throw new Error ("O 'name' do usuário deve ser uma string");
+      }
+      if(name.length < 2){
+        res.statusCode=400;
+        throw new Error("O 'name' do usuário deve conter no mínimo 2 caracteres");
+      }
+      if(typeof email !== "string"){
+        res.statusCode = 400;
+        throw new Error ("O 'email' do usuário deve ser uma 'string'");
+      }
+      if(typeof password !== "string"){
+        res.statusCode = 400;
+        throw new Error ("O 'password' do usuário deve ser uma 'string'");
+      }
+    }
+    const data = new Date().toISOString();
+
+    await db.raw(`
+    INSERT INTO users(id, name, email, password, created_at)
+    VALUES
+    ("${id}", "${name}", "${email}", "${password}", '${data}');
+    `);
+    res.status(201).send("Cadastro do usuário realizado com sucesso!");
+
+    //Código anterior
+    // const newUser: TUser = {
+    //   id,
+    //   name,
+    //   email,
+    //   password,
+    //   createdAt: new Date().toISOString(),
+    // };
+
+    
+
+    // //Verificando se o id é igual ao de algum usuário que já existe
+
+    // const idExists = .find((user) => user.id === id);
+
+    // if (idExists) {
+    //   res.status(400);
+    //   throw new Error("Já existe um user com esse id. Cadastre com outro id.");
+    // }
+
+    // //Verificando se o id é igual ao de algum usuário que já existe
+    // const emailExists: TUser | undefined = .find((user) => user.email === email);
+
+    // if (emailExists) {
+    //   res.status(400);
+    //   throw new Error("Email já existente. Cadastre um outro e-mail.");
+    // }
+
+    // .push(newUser);
+    
+  } catch (error) {
+    if (res.statusCode === 200) {
+      res.status(500);
+    }
+    if (error instanceof Error) {
+      res.send(error.message);
+    } else {
+      res.send("Erro inesperado.");
+    }
+  }
+});
+
+//deleteUser
+app.delete("/users/:id", async (req: Request, res: Response) => {
+  try {
+    const idToDelete: string = req.params.id;
+
+    const [user] = await db.raw(`SELECT * from users;`)
+    // const indexUser = .findIndex((user) => {
+    //   return user.id === userToDelete;
+    // });
+    // const idUserExists = .find((user) => user.id === userToDelete);
+
+    if (!user) {
+      res.status(404);
+      throw new Error("Usuário não encontrado, digite um id válido!");
+    }
+
+    await db.raw(`
+    DELETE FROM users
+    WHERE
+    id = '${idToDelete}'
+    `);   
+    res.status(200).send("Usuário apagado com sucesso!");
+
+  } catch (error) {
+    if (res.statusCode === 200) {
+      res.status(500);
+    }
+    if (error instanceof Error) {
+      res.send(error.message);
+    } else {
+      res.send("Erro inesperado.");
+    }
+  }
+});
+
+//edit User - COM PROBLEMAS
+app.put("/user/:id", async (req: Request, res: Response)=>{
+  try {
+    const idToEdit: string = req.params.id;
+    const [searchUser] = await db.raw(`SELECT * FROM users WHERE id = '${idToEdit}'`);
+
+    if(!searchUser){
+      res.statusCode = 404;
+      throw new Error("Usuário não encontrado");
+    }
+
+    const {id, name, email, password} = req.body;
+    const query: Array<string> = []
+
+    if( id !== undefined) {
+      if(typeof id !== "string"){
+        res.statusCode = 400;
+        throw new Error("'id' deve ser do tipo string");
+      }
+      query.push(`id = '${id}'`);
+    }
+    if(name !== undefined){
+      if(typeof name !== "string"){
+        res.statusCode = 400;
+        throw new Error("'name' deve ser do tipo string");
+      }
+      if(name.length < 2){
+        res.statusCode = 400;
+        throw new Error("Nome precisa ter mais de 1 caractere.")
+      }
+      query.push(`name = '${name}'`)
+    }
+    if(email !== undefined){
+      if(typeof email !== "string"){
+        res.statusCode = 400;
+        throw new Error("'email' deve ser do tipo string.");
+      }
+      if(!email.includes("@")){
+        res.statusCode = 400;
+        throw new Error("Email inválido.Deve conter o '@'");
+      }
+      query.push(`email = '${email}'`);
+    }
+
+    if(password !== undefined){
+      if(typeof password !== "string"){
+        res.statusCode = 400;
+        throw new Error("Senha deve ser do tipo string.");
+      }
+      query.push(`password = '${password}'`);
+    }
+
+    const newQuery: string = query.join(", ");
+    console.log(newQuery);
+    await db.raw(`UPDATE users SET ${newQuery} WHERE id = '${idToEdit}'`);
+    res.status(201).send("Informações atualizadas com sucesso!")
+
+  } catch (error) {
+    if (res.statusCode === 200) {
+            res.status(500);
+          }
+          if (error instanceof Error) {
+            res.send(error.message);
+          } else {
+            res.send("Erro inesperado.");
+          }
+  }
+})
+
+// getAllProducts 1. deve possuir pelo menos um caractere
+app.get("/products", async (req: Request, res: Response) => {
   try {
     const productToFind = req.query.name as string;
 
@@ -61,14 +249,15 @@ app.get("/products", (req: Request, res: Response) => {
         res.status(400);
         throw new Error ("A busca deve ter ao menos um caractere")
       }
-      const result: TProduct[] = products.filter((product) => {
-        return product.name
-          .toLowerCase()
-          .includes(productToFind.toLowerCase());
-      });
-      res.send(result);
+
+      const search: Array<TProduct> | undefined = await db.raw(`SELECT * FROM products WHERE name LIKE '%${productToFind}%'`);
+
+       return res.status(200).send(search);
     }
-    res.send(products);
+
+    const products: Array<TProduct> | undefined = await db.raw(`SELECT * FROM products`);
+    res.status(200).send(products);
+    
   } catch (error) {
     if (res.statusCode === 200) {
       res.status(500);
@@ -81,61 +270,9 @@ app.get("/products", (req: Request, res: Response) => {
   }
 });
 
-//createUser - 1. Validar body, 2. Id existe, 3. Email existe
-app.post("/users", (req: Request, res: Response) => {
-  try {
-    const id = req.body.id as string;
-    const name = req.body.name as string;
-    const email = req.body.email as string;
-    const password = req.body.password as string;
-
-    const newUser: TUser = {
-      id,
-      name,
-      email,
-      password,
-      createdAt: new Date().toISOString(),
-    };
-
-    //validar o body
-    if(id === undefined || name === undefined || email === undefined || password === undefined){
-      res.status(400);
-      throw new Error ("O body precisa ter todos esses atributos: 'id', 'name', 'email' e 'password'")
-    }
-
-    //Verificando se o id é igual ao de algum usuário que já existe
-
-    const idExists = users.find((user) => user.id === id);
-
-    if (idExists) {
-      res.status(400);
-      throw new Error("Já existe um user com esse id. Cadastre com outro id.");
-    }
-
-    //Verificando se o id é igual ao de algum usuário que já existe
-    const emailExists: TUser | undefined = users.find((user) => user.email === email);
-
-    if (emailExists) {
-      res.status(400);
-      throw new Error("Email já existente. Cadastre um outro e-mail.");
-    }
-
-    users.push(newUser);
-    res.status(201).send("Cadastro realizado com sucesso!");
-  } catch (error) {
-    if (res.statusCode === 200) {
-      res.status(500);
-    }
-    if (error instanceof Error) {
-      res.send(error.message);
-    } else {
-      res.send("Erro inesperado.");
-    }
-  }
-});
 
 //Criar novos produtos
-app.post("/products", (req: Request, res: Response) => {
+app.post("/products", async (req: Request, res: Response) => {
   try {
     const {id, name, price,description, imageUrl} = req.body;
 
@@ -144,7 +281,7 @@ app.post("/products", (req: Request, res: Response) => {
       name,
       price,
       description,
-      imageUrl,
+      imageUrl
     };
 
     if(id === undefined || name === undefined || price === undefined || description === undefined || imageUrl === undefined) {
@@ -162,7 +299,7 @@ app.post("/products", (req: Request, res: Response) => {
         res.status(400)
         throw new Error("O id deve começar com a letra 'p'")
       }
-      const idProductsExist = products.find((product) => product.id === id);
+      const idProductsExist = await db.raw(`SELECT * FROM products WHERE id = '${id}'`);
 
     if (idProductsExist) {
       res.status(400);
@@ -196,7 +333,11 @@ app.post("/products", (req: Request, res: Response) => {
       throw new Error("'imageUrl' deve ser do tipo string")
     }
 
-    products.push(newProduct);
+    await db.raw(`
+    INSERT INTO products(id, name, price, description, imageUrl)
+    VALUES
+    ("${newProduct}');
+    `);
     res.status(201).send("Produto cadastrado com sucesso!");
 
   } catch (error) {
@@ -211,62 +352,28 @@ app.post("/products", (req: Request, res: Response) => {
   }
 });
 
-//deleteUser
-app.delete("/users/:id", (req: Request, res: Response) => {
-  try {
-    const userToDelete: string = req.params.id;
-    const indexUser = users.findIndex((user) => {
-      return user.id === userToDelete;
-    });
-
-    const idUserExists = users.find((user) => user.id === userToDelete);
-
-    if (!idUserExists) {
-      res.status(404);
-      throw new Error("Usuário não encontrado, digite um id válido!");
-    }
-
-    if (indexUser >= 0) {
-      users.splice(indexUser, 1);
-    }
-    res.status(200).send("User apagado com sucesso!");
-
-  } catch (error) {
-    if (res.statusCode === 200) {
-      res.status(500);
-    }
-    if (error instanceof Error) {
-      res.send(error.message);
-    } else {
-      res.send("Erro inesperado.");
-    }
-  }
-});
-
-//deleteProduct
-app.delete("/products/:id", (req: Request, res: Response) => {
+// //deleteProduct
+app.delete("/products/:id", async (req: Request, res: Response) => {
   try {
     const productToDelete: string = req.params.id;
 
-    const indexProduct = products.findIndex((product) => {
-      return product.id === productToDelete;
-    });
+    const [product] = await db.raw(`SELECT * from products;`)
+    // const indexUser = .findIndex((user) => {
+    //   return user.id === userToDelete;
+    // });
+    // const idUserExists = .find((user) => user.id === userToDelete);
 
-    const idProductsExist = products.find(
-      (product) => product.id === productToDelete
-    );
-
-    if (!idProductsExist) {
+    if (!product) {
       res.status(404);
-      throw new Error(
-        "Id do product a deletar é inválido, passe um id válido!"
-      );
+      throw new Error("Produto não encontrado, digite um id válido!");
     }
 
-    if (indexProduct >= 0) {
-      products.splice(indexProduct, 1);
-    }
-    res.status(200).send("Produto apagado com sucesso");
+    await db.raw(`
+    DELETE FROM products
+    WHERE
+    id = '${productToDelete}'
+    `);   
+    res.status(200).send("Produto apagado com sucesso!");
 
   } catch (error) {
     if (res.statusCode === 200) {
@@ -281,20 +388,20 @@ app.delete("/products/:id", (req: Request, res: Response) => {
 });
 
 //editProduct
-app.put("/products/:id", (req: Request, res: Response) => {
+app.put("/products/:id", async (req: Request, res: Response) => {
   try {
     const productToEdit = req.params.id;
+
+    const {id, name, price, description, imageUrl} = req.body;
     
     //Verificando a existência do usuário
-    const product = products.find((product) => product.id === productToEdit);
+    const product = await db.raw(`SELECT * FROM products WHERE id ='${productToEdit}'`)
 
     if (product === undefined) {
       res.status(404);
       throw new Error("Não foi possível editar o produto, ID não encontrado");
-    }
-
-    const {id, name, price, description, imageUrl} = req.body;
-
+    } 
+    
     if(id !== undefined){
       if(typeof id !== 'string'){
         res.status(400);
