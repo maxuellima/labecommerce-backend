@@ -23,14 +23,14 @@ export const products: TProduct[] = [
     name: "Mouse Gamer",
     price: 250,
     description: "Melhor mouse do mercado",
-    imageUrl: "https://picsum.photos/seed/Mouse%20gamer/400",
+    image_url: "https://picsum.photos/seed/Mouse%20gamer/400",
   },
   {
     id: "prod002",
     name: "Monitor gamer",
     price: 900,
     description: "Monitor LED full HD 24 polegadas",
-    imageUrl: "https://picsum.photos/seed/Monitor/400",
+    image_url: "https://picsum.photos/seed/Monitor/400",
   },
 ];
 
