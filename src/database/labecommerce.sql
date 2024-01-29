@@ -25,22 +25,10 @@ INSERT INTO
     )
 VALUES (
         'u001',
-        'Frodo',
-        'frodobaggins@gmail.com',
+        'Derendil do Bosque',
+        'fieldman@gmail.com',
         'condado123',
         CURRENT_TIMESTAMP
-    ), (
-        'u002',
-        'Samwise Gamgee',
-        'samgamgee@hobbitmail.com',
-        'green1',
-        CURRENT_TIMESTAMP
-    ), (
-        'u003',
-        'Galadriel',
-        'arainha@gmail.com',
-        'valfenda123',
-        '2023-01-17 12:35:28'
     );
 
 --Para apagar a tabela de usuários

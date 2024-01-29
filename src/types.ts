@@ -7,9 +7,16 @@ export type TUser = {
 }
 
 export type TProduct = {
-    id: string | number,
+    id: string,
     name: string,
     price: number,
     description: string,
-    imageUrl: string
+    image_url: string
+}
+
+export type TPurchase = {
+id: string,
+buyer: string,
+total_price: string,
+created_at: string
 }
